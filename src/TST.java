@@ -1,7 +1,7 @@
 import java.util.*;
 
 /**
- * Based on princeton's implementation of a TST adapted to suit this project. I removed much of the
+ * Based on princeton's implementation of a TST, adapted to suit this project. I removed much of the
  * flexibility that princeton's had as it was unnecessary for this project as we would only be dealing with
  * strings.
  */
