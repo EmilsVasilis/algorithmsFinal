@@ -6,38 +6,66 @@ import java.util.*;
 public class main {
 
     public static void main(String[] args) throws IOException {
+        System.out.println("Welcome to the Vancouver transit mapper");
+        System.out.println("Loading Transport Map, Please wait...");
         readStops stops = new readStops();
         ArrayList<String> keys = stops.readKeys("src/stops.txt");
         ArrayList<String> values = stops.readValues("src/stops.txt");
         TST tst = new TST();
-        for(int i = 0; i < keys.size(); i++){
+        for (int i = 0; i < keys.size(); i++) {
             tst.put(values.get(i), keys.get(i));
         }
 
         readTrips t = new readTrips();
         t.readTrips("src/stop_times.txt");
-
+        readNetwork net = new readNetwork();
+        net.readStopTimes("src/stops.txt", "src/stop_times.txt", "src/transfers.txt");
+        ArrayList<readNetwork.Vertex> v = new ArrayList<>();
+        v = net.allStops;
 
         Scanner in = new Scanner(System.in);
 
         boolean exit = false;
-        System.out.println("Welcome to the Vancouver transit mapper");
-        while(!exit) {
+
+        while (!exit) {
 
             System.out.println("Select and option to continue or enter exit to close the application:");
-            System.out.println("1. Not implemented");
+            System.out.println("1. Get the shortest path between two stops");
             System.out.println("2. Search for a bus stop by name");
             System.out.println("3. Search for all trips with a certain arrival time");
-            if(in.hasNextInt()) {
+            if (in.hasNextInt()) {
                 int option = in.nextInt();
-                if(option == 1){
-                    System.out.println("To be implemented");
-                }else if(option == 2){
+                if (option == 1) {
+                    System.out.println("Get the shortest path between two stops, enter the stop ID of the starting stop");
+                    String start = in.next();
+                    if (start.equalsIgnoreCase("exit")) {
+                        exit = true;
+                    } else if (net.getVertex(readNetwork.allStops, start) != null) {
+                        System.out.println("Please enter the destination stop ID");
+                        String finish = in.next();
+                        if (net.getVertex(readNetwork.allStops, finish) != null) {
+                            readNetwork.computePaths(net.getVertex(v, start));
+                            double cost = net.getVertex(v, finish).minDistance;
+                            List<readNetwork.Vertex> path = readNetwork.getShortestPathTo(net.getVertex(v, finish));
+                            if(cost <= 0 || path.size() == 0){
+                                System.out.println("Path not found!");
+                            }else {
+                                System.out.println("Cost of trip: " + cost);
+                                System.out.println("Stops on the trip: " + readNetwork.getShortestPathTo(net.getVertex(v, finish)));
+                            }
+
+                        } else {
+                            System.out.println("Not a valid stop");
+                        }
+                    } else {
+                        System.out.println("Not a valid stop");
+                    }
+                } else if (option == 2) {
                     System.out.println("Enter name of stop you are searching for");
                     String stop = in.next();
-                    if(stop.equalsIgnoreCase("exit")){
+                    if (stop.equalsIgnoreCase("exit")) {
                         exit = true;
-                    }else {
+                    } else {
                         ArrayList<String> returnedStops = tst.valuesWithPrefix(stop.toUpperCase());
                         if (returnedStops.size() == 0) {
                             System.out.println("No stops found");
@@ -48,14 +76,14 @@ public class main {
                         }
                     }
 
-                }else if(option == 3){
+                } else if (option == 3) {
                     System.out.println("Enter the time to search by, in the format hh:mm:ss");
                     String time = in.next();
-                    if(time.equalsIgnoreCase("exit")){
+                    if (time.equalsIgnoreCase("exit")) {
                         exit = true;
-                    }else {
+                    } else {
                         String[] times = time.split(":");
-                        if (times.length < 2 || Integer.parseInt(times[0]) > 23 || Integer.parseInt(times[1]) > 59 || Integer.parseInt(times[2]) > 59 ) {
+                        if (times.length < 2 || Integer.parseInt(times[0]) > 23 || Integer.parseInt(times[1]) > 59 || Integer.parseInt(times[2]) > 59) {
                             System.out.println("Time entered is not valid!");
                         } else {
                             ArrayList<readTrips.trip> tmp = t.getTripsWithTime(time);
@@ -65,12 +93,12 @@ public class main {
                             }
                         }
                     }
-                }else{
+                } else {
                     System.out.println("Error not a valid option");
                 }
-            }else{
+            } else {
                 String opt = in.next();
-                if(opt.equalsIgnoreCase("exit")){
+                if (opt.equalsIgnoreCase("exit")) {
                     exit = true;
                 }
             }

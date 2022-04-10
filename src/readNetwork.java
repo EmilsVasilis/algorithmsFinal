@@ -1,91 +1,154 @@
+
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.PriorityQueue;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 
 public class readNetwork {
-    List<Node> g = new ArrayList<>();
-    public List<Node> readStopTimes(String fileName) {
-        try{
-            File file = new File(fileName);
+    int size = 0;
+    static ArrayList<Vertex> allStops = new ArrayList<Vertex>();
+
+    public void readStopTimes(String stopsFile, String timesFile, String transfersFile) {
+        try {
+            File file = new File(stopsFile);
             BufferedReader br = new BufferedReader(new FileReader(file));
             br.readLine();
             String temp;
             String prevID = " ";
-            int prevStop = 0;
+            String prevStop = "";
 
-            while((temp = br.readLine()) != null){
+            while ((temp = br.readLine()) != null) {
                 temp = temp.trim();
                 String[] key = temp.split(",");
-                Node node = new Node(Integer.parseInt(key[3]));
-                if(getNodeByNum(g,Integer.parseInt(key[3])) == null){
-                    g.add(node);
+                Vertex stop = new Vertex(key[0]);
+                if (!allStops.contains(stop)) {
+                    allStops.add(stop);
                 }
-                if(key[0].equals(prevID)){
-                    getNodeByNum(g,prevStop).add_child(Integer.parseInt(key[3]), 1);
+            }
 
+            file = new File(transfersFile);
+            br = new BufferedReader(new FileReader(file));
+            br.readLine();
+            while ((temp = br.readLine()) != null) {
+                temp = temp.trim();
+                String[] key = temp.split(",");
+                if (key[2].equals("0")) {
+                    Edge e = new Edge((getVertex(allStops, key[1])), 2.0);
+                    getVertex(allStops, key[0]).adjacencies.add(e);
+                } else {
+                    Edge e = new Edge((getVertex(allStops, key[1])), Integer.parseInt(key[3]) / 100.0);
+                    getVertex(allStops, key[0]).adjacencies.add(e);
+                }
+            }
+
+            file = new File(timesFile);
+            br = new BufferedReader(new FileReader(file));
+            br.readLine();
+            Vertex cur;
+            while ((temp = br.readLine()) != null) {
+                temp = temp.trim();
+                String[] key = temp.split(",");
+                if (prevID.equals(key[0])) {
+                    Edge e = new Edge((getVertex(allStops, key[3])), 1.0);
+                    getVertex(allStops, prevStop).adjacencies.add(e);
                 }
                 prevID = key[0];
-                prevStop = Integer.parseInt(key[3]);
+                prevStop = key[3];
 
             }
-            return g;
-        }catch(Exception e){
+
+        } catch (Exception e) {
             System.out.println("File not found");
             e.printStackTrace();
         }
-        return null;
     }
 
 
+    class Vertex implements Comparable<Vertex> {
+        public final String name;
+        public ArrayList<Edge> adjacencies = new ArrayList<Edge>();
+        public double minDistance = Double.POSITIVE_INFINITY;
+        public Vertex previous;
 
-
-
-    /**
-     * Node object to store node data in an array
-     */
-    static class Node {
-        int stop;
-
-        // Adjacency list that shows the
-        // vertexNumber of child vertex
-        // and the weight of the edge
-        List<Pair> children;
-
-        Node(int stop)
-        {
-            this.stop = stop;
-            children = new ArrayList<>();
+        public Vertex(String argName) {
+            name = argName;
         }
 
-        // Function to add the child for
-        // the given node
-        void add_child(int stop, int cost)
-        {
-            Pair p = new Pair(stop, cost);
-            children.add(p);
+        public int compareTo(Vertex other) {
+            return Double.compare(minDistance, other.minDistance);
         }
 
     }
 
-    static class Pair
-    {
-        int first;
-        int second;
 
-        public Pair(int first, int second)
-        {
-            this.first = first;
-            this.second = second;
+    class Edge {
+        public final Vertex target;
+        public final double weight;
+
+        public Edge(Vertex argTarget, double argWeight) {
+            target = argTarget;
+            weight = argWeight;
         }
     }
-    static Node getNodeByNum(List<Node> g, int stop){
-        for(int i = 0 ; i < g.size(); i++){
-            if(g.get(i).stop == stop ){
-                return g.get(i);
+
+
+    public static void computePaths(Vertex source) {
+
+        for (Vertex v : allStops
+        ) {
+            v.minDistance = Double.POSITIVE_INFINITY;
+            v.previous = null;
+        }
+        source.minDistance = 0.;
+        PriorityQueue<Vertex> vertexQueue = new PriorityQueue<Vertex>();
+        vertexQueue.add(source);
+
+        while (!vertexQueue.isEmpty()) {
+            Vertex u = vertexQueue.poll();
+
+            // Visit each edge exiting u
+            for (Edge e : u.adjacencies) {
+                Vertex v = e.target;
+                double weight = e.weight;
+                double distanceThroughU = u.minDistance + weight;
+                if (distanceThroughU < v.minDistance) {
+                    vertexQueue.remove(v);
+                    v.minDistance = distanceThroughU;
+                    v.previous = u;
+                    vertexQueue.add(v);
+                }
+            }
+        }
+    }
+
+    public static List<Vertex> getShortestPathTo(Vertex destination) {
+        List<Vertex> path = new ArrayList<Vertex>();
+        // Run backwards through the vertices to get the path
+        for (Vertex vertex = destination; vertex != null; vertex = vertex.previous) {
+            path.add(vertex);
+        }
+        // Reverse the path so that its in the right order
+        Collections.reverse(path);
+        return path;
+    }
+
+
+    public Vertex getVertex(ArrayList<Vertex> vertices, String name) {
+        for (Vertex v : vertices
+        ) {
+            if (v.name.equals(name)) {
+                return v;
             }
         }
         return null;
     }
+
 }

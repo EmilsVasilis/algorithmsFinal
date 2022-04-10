@@ -3,17 +3,18 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.*;
 
-public class readTrips  {
+public class readTrips {
     ArrayList<trip> allTrips;
+
     public ArrayList<trip> readTrips(String fileName) {
-        try{
+        try {
             File file = new File(fileName);
             BufferedReader br = new BufferedReader(new FileReader(file));
             br.readLine();
             String temp;
             ArrayList<trip> trips = new ArrayList<trip>();
 
-            while((temp = br.readLine()) != null){
+            while ((temp = br.readLine()) != null) {
                 temp = temp.trim();
                 String[] key = temp.split(",");
                 trip cur = new trip(key[1], temp, Integer.parseInt(key[0]));
@@ -21,7 +22,7 @@ public class readTrips  {
             }
             allTrips = trips;
             return trips;
-        }catch(Exception e){
+        } catch (Exception e) {
             System.out.println("File not found");
             e.printStackTrace();
         }
@@ -29,29 +30,30 @@ public class readTrips  {
     }
 
 
-
     static class trip {
         String time;
         String info;
         int ID;
-        trip(String time, String info, int ID){
+
+        trip(String time, String info, int ID) {
             this.time = time;
             this.info = info;
             this.ID = ID;
         }
-        int getID(){
+
+        int getID() {
             return this.ID;
         }
 
 
     }
 
-    public ArrayList<trip> getTripsWithTime ( String time){
+    public ArrayList<trip> getTripsWithTime(String time) {
         ArrayList<trip> a = new ArrayList<trip>();
-        for (trip t: allTrips
-             ) {
+        for (trip t : allTrips
+        ) {
             String tmp = t.time.trim();
-            if(tmp.equals(time)){
+            if (tmp.equals(time)) {
                 a.add(t);
             }
         }
