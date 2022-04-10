@@ -1,6 +1,4 @@
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.*;
 
 public class main {
@@ -21,7 +19,7 @@ public class main {
         readNetwork net = new readNetwork();
         net.readStopTimes("src/stops.txt", "src/stop_times.txt", "src/transfers.txt");
         ArrayList<readNetwork.Vertex> v = new ArrayList<>();
-        v = net.allStops;
+        v = readNetwork.allStops;
 
         Scanner in = new Scanner(System.in);
 
@@ -51,7 +49,13 @@ public class main {
                                 System.out.println("Path not found!");
                             }else {
                                 System.out.println("Cost of trip: " + cost);
-                                System.out.println("Stops on the trip: " + readNetwork.getShortestPathTo(net.getVertex(v, finish)));
+                                System.out.print("Stops on the trip: ");
+                                for (readNetwork.Vertex ver: path
+                                     ) {
+                                    System.out.print(ver.name + " ");
+                                }
+                                System.out.println("\n");
+
                             }
 
                         } else {
@@ -69,10 +73,11 @@ public class main {
                         ArrayList<String> returnedStops = tst.valuesWithPrefix(stop.toUpperCase());
                         if (returnedStops.size() == 0) {
                             System.out.println("No stops found");
-                        }
-                        for (String s : returnedStops) {
-                            s = s.trim();
-                            System.out.println(s);
+                        }else {
+                            for (String s : returnedStops) {
+                                s = s.trim();
+                                System.out.println(s);
+                            }
                         }
                     }
 
@@ -88,8 +93,12 @@ public class main {
                         } else {
                             ArrayList<readTrips.trip> tmp = t.getTripsWithTime(time);
                             System.out.println("trip_id,arrival_time,departure_time,stop_id,stop_sequence,stop_headsign,pickup_type,drop_off_type,shape_dist_traveled");
-                            for (readTrips.trip trp : tmp) {
-                                System.out.println(trp.info);
+                            if(tmp.size() == 0){
+                                System.out.println("No trip with this time found!");
+                            }else {
+                                for (readTrips.trip trp : tmp) {
+                                    System.out.println(trp.info);
+                                }
                             }
                         }
                     }
